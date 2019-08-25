@@ -1,3 +1,6 @@
+# Classic snake arcade game
+# Created by Ned Datiles
+
 import sys
 import pygame
 from random import randint
