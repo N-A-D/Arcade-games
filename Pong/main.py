@@ -1,3 +1,6 @@
+# CLassic pong
+# Created by Ned Datiles
+
 import os, sys
 import pygame
 from random import randint
@@ -96,20 +99,33 @@ class Ball(pygame.sprite.Sprite):
            self.rect.bottom = WIN_WIDTH
            self.vel.y = -BALL_SPEED
 
-if __name__ == '__main__':
-    pygame.init()
+def make_screen() -> pygame.Surface:
     screen = pygame.display.set_mode(WIN_SIZE)
-    pygame.display.set_caption("Pygame Pong")
+    pygame.display.set_caption("Pong")
     pygame.mouse.set_visible(False)
+    return screen
 
-    background = pygame.Surface(screen.get_size())
-    background = background.convert()
-    background.fill(BG_COLOR)
-
+def game_over_loop(screen: pygame.Surface, msg: str):
     font = pygame.font.Font(None, 48)
-    
-    screen.blit(background, (0, 0))
-    pygame.display.flip()
+    text = font.render(msg + " Press 'r' to restart", 1, TXT_COLOR)
+    text_rect = text.get_rect()
+    text_rect.center = (WIN_WIDTH / 2, WIN_HEIGHT / 2)
+    screen.fill(BG_COLOR)
+
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                done = True
+            elif event.type == KEYDOWN:
+                if event.key == K_r:
+                    game_loop(screen)
+            screen.fill(BG_COLOR)
+            screen.blit(text, text_rect)
+            pygame.display.flip()
+
+def game_loop(screen: pygame.Surface):
+    font = pygame.font.Font(None, 48)
 
     clock = pygame.time.Clock()
     paddle_one = PaddleOne(vec2D(PADDLE_WIDTH, WIN_HEIGHT / 2))
@@ -121,6 +137,7 @@ if __name__ == '__main__':
     all_sprites = pygame.sprite.Group((paddle_one, paddle_two, ball))
     
     play = True
+    has_winner = False
     while play:
         clock.tick(60)
 
@@ -147,14 +164,15 @@ if __name__ == '__main__':
 
         if not ball.alive():
             ball = Ball(pos=vec2D(WIN_WIDTH / 2, BALL_HEIGHT), 
-                    vel=vec2D(randint(-BALL_SPEED, BALL_SPEED), BALL_SPEED))
+                        vel=vec2D(randint(-BALL_SPEED, BALL_SPEED), BALL_SPEED))
             all_sprites.add(ball)
 
         if paddle_one_score == 11 or paddle_two_score == 11:
             play = False
+            has_winner = True
 
         # drawing
-        screen.blit(background, (0, 0))
+        screen.fill(BG_COLOR)
 
         paddle_one_score_text = font.render(str(paddle_one_score), 1, TXT_COLOR)
         paddle_one_score_text_rect = paddle_one_score_text.get_rect()
@@ -168,4 +186,13 @@ if __name__ == '__main__':
         all_sprites.draw(screen)
         pygame.display.flip()
 
+    if has_winner:
+        if paddle_one_score == 11:
+            game_over_loop(screen, "Player one is the winner!")
+        else:
+            game_over_loop(screen, "Player two is the winner!")
+    
+if __name__ == '__main__':
+    pygame.init()
+    game_loop(make_screen())
     pygame.quit()
